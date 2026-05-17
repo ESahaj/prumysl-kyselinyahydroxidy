@@ -381,8 +381,8 @@
   </div>
 
   <script>
-    const questionBank = [
-      [
+    document.addEventListener("DOMContentLoaded", () => {
+          const questionBank = [
   {
     question: "Z uvedených vzorců vyber vzorec pro kyselinu sírovou.",
     answers: ["H2S", "H2SO3", "H2SO4", "HSO6"],
@@ -713,172 +713,174 @@
     correct: 0,
     explanation: "Chemické látky mohou být nebezpečné, proto se nikdy neochutnávají."
   }
-    ];
+          ];
 
-    const state = {
-      round: [],
-      current: 0,
-      score: 0,
-      lightnings: 0,
-      answered: false,
-      history: []
-    };
+          const state = {
+            round: [],
+            current: 0,
+            score: 0,
+            lightnings: 0,
+            answered: false,
+            history: []
+          };
 
-    const $ = (id) => document.getElementById(id);
+          const $ = (id) => document.getElementById(id);
 
-    const screens = {
-      start: $("startScreen"),
-      game: $("gameScreen"),
-      result: $("resultScreen")
-    };
+          const screens = {
+            start: $("startScreen"),
+            game: $("gameScreen"),
+            result: $("resultScreen")
+          };
 
-    function showScreen(name) {
-      Object.values(screens).forEach(screen => screen.classList.remove("active"));
-      screens[name].classList.add("active");
-    }
+          function showScreen(name) {
+            Object.values(screens).forEach(screen => screen.classList.remove("active"));
+            screens[name].classList.add("active");
+          }
 
-    function shuffle(array) {
-      return [...array].sort(() => Math.random() - 0.5);
-    }
+          function shuffle(array) {
+            return [...array].sort(() => Math.random() - 0.5);
+          }
 
-    function startGame() {
-      const available = questionBank;
-      const count = 10;
+          function startGame() {
+            const available = questionBank;
+            const count = 10;
 
-      state.round = shuffle(available).slice(0, Math.min(count, available.length));
-      state.current = 0;
-      state.score = 0;
-      state.lightnings = 0;
-      state.answered = false;
-      state.history = [];
+            state.round = shuffle(available).slice(0, Math.min(count, available.length));
+            state.current = 0;
+            state.score = 0;
+            state.lightnings = 0;
+            state.answered = false;
+            state.history = [];
 
-      updateHeader();
-      showScreen("game");
-      renderQuestion();
-    }
+            updateHeader();
+            showScreen("game");
+            renderQuestion();
+          }
 
-    function updateHeader() {
-      $("roundNow").textContent = Math.min(state.current + 1, state.round.length || 0);
-      $("lightnings").textContent = state.lightnings;
-      $("scoreLabel").textContent = `Správně: ${state.score}`;
-      const progress = state.round.length ? (state.current / state.round.length) * 100 : 0;
-      $("progressBar").style.width = `${progress}%`;
-    }
+          function updateHeader() {
+            $("roundNow").textContent = Math.min(state.current + 1, state.round.length || 0);
+            $("lightnings").textContent = state.lightnings;
+            $("scoreLabel").textContent = `Správně: ${state.score}`;
+            const progress = state.round.length ? (state.current / state.round.length) * 100 : 0;
+            $("progressBar").style.width = `${progress}%`;
+          }
 
-    function renderQuestion() {
-      const q = state.round[state.current];
-      state.answered = false;      $("questionText").textContent = q.question;
-      $("feedback").className = "feedback";
-      $("feedback").textContent = "";
-      $("nextBtn").hidden = true;
-      $("answers").innerHTML = "";
-      updateHeader();
+          function renderQuestion() {
+            const q = state.round[state.current];
+            state.answered = false;      $("questionText").textContent = q.question;
+            $("feedback").className = "feedback";
+            $("feedback").textContent = "";
+            $("nextBtn").hidden = true;
+            $("answers").innerHTML = "";
+            updateHeader();
 
-      const mappedAnswers = q.answers.map((text, originalIndex) => ({ text, originalIndex }));
-      shuffle(mappedAnswers).forEach((answer, visibleIndex) => {
-        const button = document.createElement("button");
-        button.className = "answer";
-        button.type = "button";
-        button.innerHTML = `<span aria-hidden="true">${String.fromCharCode(65 + visibleIndex)}.</span> ${answer.text}`;
-        button.addEventListener("click", () => chooseAnswer(button, answer.originalIndex));
-        $("answers").appendChild(button);
-      });
-    }
+            const mappedAnswers = q.answers.map((text, originalIndex) => ({ text, originalIndex }));
+            shuffle(mappedAnswers).forEach((answer, visibleIndex) => {
+              const button = document.createElement("button");
+              button.className = "answer";
+              button.type = "button";
+              button.innerHTML = `<span aria-hidden="true">${String.fromCharCode(65 + visibleIndex)}.</span> ${answer.text}`;
+              button.addEventListener("click", () => chooseAnswer(button, answer.originalIndex));
+              $("answers").appendChild(button);
+            });
+          }
 
-    function chooseAnswer(button, selectedIndex) {
-      if (state.answered) return;
-      state.answered = true;
+          function chooseAnswer(button, selectedIndex) {
+            if (state.answered) return;
+            state.answered = true;
 
-      const q = state.round[state.current];
-      const isCorrect = selectedIndex === q.correct;
-      const buttons = [...document.querySelectorAll(".answer")];
+            const q = state.round[state.current];
+            const isCorrect = selectedIndex === q.correct;
+            const buttons = [...document.querySelectorAll(".answer")];
 
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        const text = btn.textContent.replace(/^[A-D]\.\s*/, "").trim();
-        const originalIndex = q.answers.indexOf(text);
-        if (originalIndex === q.correct) btn.classList.add("correct");
-      });
+            buttons.forEach(btn => {
+              btn.disabled = true;
+              const text = btn.textContent.replace(/^[A-D]\.\s*/, "").trim();
+              const originalIndex = q.answers.indexOf(text);
+              if (originalIndex === q.correct) btn.classList.add("correct");
+            });
 
-      if (isCorrect) {
-        state.score += 1;
-        state.lightnings += 1;
-        button.classList.add("correct");
-        $("feedback").innerHTML = `✅ Správně! Získáváš energii.<br><span class="small">${q.explanation}</span>`;
-      } else {
-        button.classList.add("wrong");
-        $("feedback").innerHTML = `❌ To není správně. Správná odpověď: <strong>${q.answers[q.correct]}</strong>.<br><span class="small">${q.explanation}</span>`;
-      }
+            if (isCorrect) {
+              state.score += 1;
+              state.lightnings += 1;
+              button.classList.add("correct");
+              $("feedback").innerHTML = `✅ Správně! Získáváš energii.<br><span class="small">${q.explanation}</span>`;
+            } else {
+              button.classList.add("wrong");
+              $("feedback").innerHTML = `❌ To není správně. Správná odpověď: <strong>${q.answers[q.correct]}</strong>.<br><span class="small">${q.explanation}</span>`;
+            }
 
-      state.history.push({
-        question: q.question,
-        selected: q.answers[selectedIndex],
-        correct: q.answers[q.correct],
-        isCorrect
-      });
+            state.history.push({
+              question: q.question,
+              selected: q.answers[selectedIndex],
+              correct: q.answers[q.correct],
+              isCorrect
+            });
 
-      $("feedback").classList.add("show");
-      $("nextBtn").hidden = false;
-      updateHeader();
-    }
+            $("feedback").classList.add("show");
+            $("nextBtn").hidden = false;
+            updateHeader();
+          }
 
-    function nextQuestion() {
-      state.current += 1;
-      if (state.current >= state.round.length) {
-        showResults();
-      } else {
-        renderQuestion();
-      }
-    }
+          function nextQuestion() {
+            state.current += 1;
+            if (state.current >= state.round.length) {
+              showResults();
+            } else {
+              renderQuestion();
+            }
+          }
 
-    function showResults() {
-      $("roundNow").textContent = state.round.length;
-      $("progressBar").style.width = "100%";
-      showScreen("result");
+          function showResults() {
+            $("roundNow").textContent = state.round.length;
+            $("progressBar").style.width = "100%";
+            showScreen("result");
 
-      const total = state.round.length;
-      const percent = Math.round((state.score / total) * 100);
-      $("finalScore").textContent = `${state.score}/${total}`;
-      $("finalLightnings").textContent = state.lightnings;
+            const total = state.round.length;
+            const percent = Math.round((state.score / total) * 100);
+            $("finalScore").textContent = `${state.score}/${total}`;
+            $("finalLightnings").textContent = state.lightnings;
 
-      let message = "Dobrá práce!";
-      if (percent === 100) message = "Perfektní výsledek! Máš maximum energie.";
-      else if (percent >= 80) message = "Výborně! Většinu otázek máš správně.";
-      else if (percent >= 50) message = "Slušný výkon. Ještě pár pokusů a bude to skvělé.";
-      else message = "Nevadí, zkus další kolo a nasbírej více energie.";
+            let message = "Dobrá práce!";
+            if (percent === 100) message = "Perfektní výsledek! Máš maximum energie.";
+            else if (percent >= 80) message = "Výborně! Většinu otázek máš správně.";
+            else if (percent >= 50) message = "Slušný výkon. Ještě pár pokusů a bude to skvělé.";
+            else message = "Nevadí, zkus další kolo a nasbírej více energie.";
 
-      $("resultMessage").textContent = message;
-      renderReview();
-    }
+            $("resultMessage").textContent = message;
+            renderReview();
+          }
 
-    function renderReview() {
-      const review = $("review");
-      review.innerHTML = "";
-      state.history.forEach((item, index) => {
-        const div = document.createElement("div");
-        div.className = `review-item ${item.isCorrect ? "good" : "bad"}`;
-        div.innerHTML = `
-          <strong>${index + 1}. ${item.question}</strong>
-          <div class="small">Tvoje odpověď: ${item.selected}</div>
-          <div class="small">Správně: ${item.correct}</div>
-        `;
-        review.appendChild(div);
-      });
-    }
+          function renderReview() {
+            const review = $("review");
+            review.innerHTML = "";
+            state.history.forEach((item, index) => {
+              const div = document.createElement("div");
+              div.className = `review-item ${item.isCorrect ? "good" : "bad"}`;
+              div.innerHTML = `
+                <strong>${index + 1}. ${item.question}</strong>
+                <div class="small">Tvoje odpověď: ${item.selected}</div>
+                <div class="small">Správně: ${item.correct}</div>
+              `;
+              review.appendChild(div);
+            });
+          }
 
-    $("startBtn").addEventListener("click", startGame);
-    $("nextBtn").addEventListener("click", nextQuestion);
-    $("restartBtn").addEventListener("click", () => {
-      $("review").hidden = true;
-      $("showReviewBtn").textContent = "Zobrazit přehled";
-      showScreen("start");
-      $("roundNow").textContent = "0";
-      $("lightnings").textContent = "0";
-    });
-    $("showReviewBtn").addEventListener("click", () => {
-      const review = $("review");
-      review.hidden = !review.hidden;
-      $("showReviewBtn").textContent = review.hidden ? "Zobrazit přehled" : "Skrýt přehled";
+          $("startBtn").addEventListener("click", startGame);
+          $("nextBtn").addEventListener("click", nextQuestion);
+          $("restartBtn").addEventListener("click", () => {
+            $("review").hidden = true;
+            $("showReviewBtn").textContent = "Zobrazit přehled";
+            showScreen("start");
+            $("roundNow").textContent = "0";
+            $("lightnings").textContent = "0";
+          });
+          $("showReviewBtn").addEventListener("click", () => {
+            const review = $("review");
+            review.hidden = !review.hidden;
+            $("showReviewBtn").textContent = review.hidden ? "Zobrazit přehled" : "Skrýt přehled";
+          });
+
     });
   </script>
 </body>
